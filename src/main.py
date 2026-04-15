@@ -1,3 +1,8 @@
+from clube import (
+     criar_clube,
+     remover_clube,
+     listar_clubes,
+)
 from jogador import (
     criar_jogador,
     listar_jogadores,
@@ -18,6 +23,7 @@ def main():
     5. Remover 
     6. Adicionar clube
     7. Remover clube
+    8. listar clube
     0. Sair
     """)
         op = input("Opção: ")
@@ -109,8 +115,21 @@ def main():
             except ValueError:
                 print(" ID inválido!")
 
+          elif op == "8":
+            status, dados = listar_clubes()
+
+            if status == 200:
+                print("\n--- Clubes ---")
+                if isinstance(dados, str):
+                    print("",dados)
+                else:
+                    for c in dados:
+                        print(f'{c["id_clube"]} | {c["nome"]} | NIF: {c["nif"]}')
+            else:
+                print("", dados)
+
         elif op == "0":
-            print("A sair...")
+            print("A sair e o sporting vai ser tricampeão")
             break
 
         else:

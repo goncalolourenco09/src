@@ -1,6 +1,3 @@
-import os
-
-
 def criar_jogo(data, estadio, id_clube_casa, id_clube_fora, golos_casa=0, golos_fora=0):
     novo_id = 1 if not jogos else jogos[-1]["id_jogo"] + 1
     novo = {

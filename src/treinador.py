@@ -1,5 +1,3 @@
-import os
-
 treinadores = []
 
 def criar_treinador(nome, nacionalidade, data_nascimento, licenca_UEFA, id_clube=None):

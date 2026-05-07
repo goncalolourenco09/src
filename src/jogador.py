@@ -1,5 +1,4 @@
 from utils import (
-    gerar_id_de_lista,
     validar_nome,
     validar_data,
     validar_salario,

@@ -87,7 +87,7 @@ def main():
         elif op == "2":
             status, dados = listar_jogadores()
 
-            
+            # ✅ CORREÇÃO: listar_jogadores devolve 204 quando está vazio
             if status in (200, 204):
                 if isinstance(dados, str):
                     print(dados)
@@ -131,7 +131,7 @@ def main():
             else:
                 numero = None
 
-           
+            # ✅ CORREÇÃO: parâmetros nomeados e nome vazio passa como None
             status, msg = atualizar_jogador(
                 id_jogador,
                 nome=nome or None,
@@ -226,7 +226,7 @@ def main():
         elif op == "10":
             status, dados = listar_treinadores()
 
-            
+            # ✅ CORREÇÃO: listar_treinadores devolve 204 quando está vazio
             if status in (200, 204):
                 if isinstance(dados, str):
                     print(dados)
@@ -321,7 +321,7 @@ def main():
         elif op == "15":
             status, dados = listar_jogos()
 
-            
+            # ✅ CORREÇÃO: listar_jogos devolve 204 quando está vazio
             if status in (200, 204):
                 if isinstance(dados, str):
                     print(dados)

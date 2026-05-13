@@ -7,14 +7,27 @@ from utils import (
     validar_posicao,
     calcular_idade,
 )
+from persistencia import guardar, carregar, FICHEIRO_JOGADORES
 
 jogadores = {}
+
+# ==========================
+# Persistência
+# ==========================
+
+def guardar_jogadores():
+    guardar(FICHEIRO_JOGADORES, jogadores)
+
+def carregar_jogadores():
+    global jogadores
+    jogadores = carregar(FICHEIRO_JOGADORES)
 
 # ==========================
 # CREATE
 # ==========================
 
 def criar_jogador(nome, data_nascimento, numero_camisa, posicao, salario):
+    carregar_jogadores()
     if not validar_nome(nome):
         return 500, "Nome inválido."
     if not validar_data(data_nascimento):
@@ -38,6 +51,7 @@ def criar_jogador(nome, data_nascimento, numero_camisa, posicao, salario):
         "salario": salario
     }
     jogadores[id_jogador] = jogador
+    guardar_jogadores()
     return 201, jogador
 
 # ==========================
@@ -45,6 +59,7 @@ def criar_jogador(nome, data_nascimento, numero_camisa, posicao, salario):
 # ==========================
 
 def listar_jogadores():
+    carregar_jogadores()
     if not jogadores:
         return 404, "Não existem jogadores registados."
     return 200, jogadores
@@ -54,6 +69,7 @@ def listar_jogadores():
 # ==========================
 
 def consultar_jogador(id_jogador):
+    carregar_jogadores()
     if id_jogador not in jogadores:
         return 404, "Jogador não encontrado."
     return 200, jogadores[id_jogador]
@@ -63,6 +79,7 @@ def consultar_jogador(id_jogador):
 # ==========================
 
 def atualizar_jogador(id_jogador, nome=None, numero_camisa=None, salario=None, posicao=None):
+    carregar_jogadores()
     if id_jogador not in jogadores:
         return 404, "Jogador não encontrado."
     if nome:
@@ -84,6 +101,7 @@ def atualizar_jogador(id_jogador, nome=None, numero_camisa=None, salario=None, p
         if not validar_posicao(posicao):
             return 500, "Posição inválida."
         jogadores[id_jogador]["posicao"] = posicao
+    guardar_jogadores()
     return 200, jogadores[id_jogador]
 
 # ==========================
@@ -91,7 +109,9 @@ def atualizar_jogador(id_jogador, nome=None, numero_camisa=None, salario=None, p
 # ==========================
 
 def remover_jogador(id_jogador):
+    carregar_jogadores()
     if id_jogador not in jogadores:
         return 404, "Jogador não encontrado."
     del jogadores[id_jogador]
+    guardar_jogadores()
     return 200, id_jogador

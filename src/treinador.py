@@ -4,14 +4,27 @@ from utils import (
     validar_data,
     validar_licenca_UEFA,
 )
+from persistencia import guardar, carregar, FICHEIRO_TREINADORES
 
 treinadores = {}
+
+# ==========================
+# Persistência
+# ==========================
+
+def guardar_treinadores():
+    guardar(FICHEIRO_TREINADORES, treinadores)
+
+def carregar_treinadores():
+    global treinadores
+    treinadores = carregar(FICHEIRO_TREINADORES)
 
 # ==========================
 # CREATE
 # ==========================
 
 def criar_treinador(nome, nacionalidade, data_nascimento, licenca_UEFA, id_clube=None):
+    carregar_treinadores()
     if not validar_nome(nome):
         return 500, "Nome inválido."
     if not validar_nome(nacionalidade):
@@ -32,6 +45,7 @@ def criar_treinador(nome, nacionalidade, data_nascimento, licenca_UEFA, id_clube
         "id_clube": id_clube
     }
     treinadores[id_treinador] = treinador
+    guardar_treinadores()
     return 201, treinador
 
 # ==========================
@@ -39,6 +53,7 @@ def criar_treinador(nome, nacionalidade, data_nascimento, licenca_UEFA, id_clube
 # ==========================
 
 def listar_treinadores():
+    carregar_treinadores()
     if not treinadores:
         return 404, "Não existem treinadores registados."
     return 200, treinadores
@@ -48,6 +63,7 @@ def listar_treinadores():
 # ==========================
 
 def consultar_treinador(id_treinador):
+    carregar_treinadores()
     if id_treinador not in treinadores:
         return 404, "Treinador não encontrado."
     return 200, treinadores[id_treinador]
@@ -57,6 +73,7 @@ def consultar_treinador(id_treinador):
 # ==========================
 
 def atualizar_treinador(id_treinador, nome=None, nacionalidade=None, licenca_UEFA=None, id_clube=None):
+    carregar_treinadores()
     if id_treinador not in treinadores:
         return 404, "Treinador não encontrado."
     if nome:
@@ -75,6 +92,7 @@ def atualizar_treinador(id_treinador, nome=None, nacionalidade=None, licenca_UEF
         if not isinstance(id_clube, int) or id_clube <= 0:
             return 500, "ID de clube inválido."
         treinadores[id_treinador]["id_clube"] = id_clube
+    guardar_treinadores()
     return 200, treinadores[id_treinador]
 
 # ==========================
@@ -82,7 +100,9 @@ def atualizar_treinador(id_treinador, nome=None, nacionalidade=None, licenca_UEF
 # ==========================
 
 def remover_treinador(id_treinador):
+    carregar_treinadores()
     if id_treinador not in treinadores:
         return 404, "Treinador não encontrado."
     del treinadores[id_treinador]
+    guardar_treinadores()
     return 200, id_treinador

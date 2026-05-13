@@ -4,14 +4,27 @@ from utils import (
     validar_data,
     validar_golos,
 )
+from persistencia import guardar, carregar, FICHEIRO_JOGOS
 
 jogos = {}
+
+# ==========================
+# Persistência
+# ==========================
+
+def guardar_jogos():
+    guardar(FICHEIRO_JOGOS, jogos)
+
+def carregar_jogos():
+    global jogos
+    jogos = carregar(FICHEIRO_JOGOS)
 
 # ==========================
 # CREATE
 # ==========================
 
 def criar_jogo(data, estadio, id_clube_casa, id_clube_fora, golos_casa=0, golos_fora=0):
+    carregar_jogos()
     if not validar_data(data):
         return 500, "Data inválida. Utilize o formato YYYY-MM-DD."
     if not validar_nome(estadio):
@@ -38,6 +51,7 @@ def criar_jogo(data, estadio, id_clube_casa, id_clube_fora, golos_casa=0, golos_
         "convocados": []
     }
     jogos[id_jogo] = jogo
+    guardar_jogos()
     return 201, jogo
 
 # ==========================
@@ -45,6 +59,7 @@ def criar_jogo(data, estadio, id_clube_casa, id_clube_fora, golos_casa=0, golos_
 # ==========================
 
 def listar_jogos():
+    carregar_jogos()
     if not jogos:
         return 404, "Não existem jogos registados."
     return 200, jogos
@@ -54,6 +69,7 @@ def listar_jogos():
 # ==========================
 
 def consultar_jogo(id_jogo):
+    carregar_jogos()
     if id_jogo not in jogos:
         return 404, "Jogo não encontrado."
     return 200, jogos[id_jogo]
@@ -63,6 +79,7 @@ def consultar_jogo(id_jogo):
 # ==========================
 
 def atualizar_jogo(id_jogo, golos_casa=None, golos_fora=None, estadio=None):
+    carregar_jogos()
     if id_jogo not in jogos:
         return 404, "Jogo não encontrado."
     if golos_casa is not None:
@@ -77,6 +94,7 @@ def atualizar_jogo(id_jogo, golos_casa=None, golos_fora=None, estadio=None):
         if not validar_nome(estadio):
             return 500, "Nome do estádio inválido."
         jogos[id_jogo]["estadio"] = estadio
+    guardar_jogos()
     return 200, jogos[id_jogo]
 
 # ==========================
@@ -84,7 +102,9 @@ def atualizar_jogo(id_jogo, golos_casa=None, golos_fora=None, estadio=None):
 # ==========================
 
 def remover_jogo(id_jogo):
+    carregar_jogos()
     if id_jogo not in jogos:
         return 404, "Jogo não encontrado."
     del jogos[id_jogo]
+    guardar_jogos()
     return 200, id_jogo

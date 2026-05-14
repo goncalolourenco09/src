@@ -21,7 +21,7 @@ from jogador import (
     criar_jogador,
     listar_jogadores,
     remover_jogador,
-    obter_jogador,
+    consultar_jogador,
     atualizar_jogador,
 )
 

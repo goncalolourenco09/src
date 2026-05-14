@@ -25,6 +25,13 @@ def gerar_id_clube():
         return 1
     return max(clubes.keys()) + 1
 
+def gerar_id_jogador():
+    from persistencia import carregar, FICHEIRO_JOGADORES
+    jogadores = carregar(FICHEIRO_JOGADORES)
+    if not jogadores:
+        return 1
+    return max(jogadores.keys()) + 1
+
 # ============================================================
 # VALIDAÇÕES
 # ============================================================

@@ -11,6 +11,13 @@ def gerar_id_de_lista(lista, campo_id):
     return max(item[campo_id] for item in lista) + 1
 
 
+def gerar_id_jogo():
+    from persistencia import carregar, FICHEIRO_JOGOS
+    jogos = carregar(FICHEIRO_JOGOS)
+    if not jogos:
+        return 1
+    return max(jogos.keys()) + 1
+
 # ============================================================
 # VALIDAÇÕES
 # ============================================================

@@ -3,7 +3,7 @@ from treinador import (
     atualizar_treinador,
     listar_treinadores,
     remover_treinador,
-    obter_treinador,
+    consultar_treinador,
 )
 from jogo import (
     remover_jogo,

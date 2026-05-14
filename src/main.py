@@ -7,7 +7,7 @@ from treinador import (
 )
 from jogo import (
     remover_jogo,
-    obter_jogo,
+    consultar_jogo,
     atualizar_jogo,
     listar_jogos,
     criar_jogo,

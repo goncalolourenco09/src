@@ -1,44 +1,91 @@
-clubes = []
-ultimo_id_clube = 0
+from utils import gerar_id_clube, validar_nome, validar_nif
+from persistencia import guardar, carregar, FICHEIRO_CLUBES
 
+clubes = {}
 
-def gerar_id_clube():
-    global ultimo_id_clube
-    ultimo_id_clube += 1
-    return ultimo_id_clube
+# ==========================
+# Persistência
+# ==========================
 
+def guardar_clubes():
+    guardar(FICHEIRO_CLUBES, clubes)
+
+def carregar_clubes():
+    global clubes
+    clubes = carregar(FICHEIRO_CLUBES)
+
+# ==========================
+# CREATE
+# ==========================
 
 def criar_clube(nome, nif):
-    # verificar se já existe NIF
-    for c in clubes:
+    carregar_clubes()
+    if not validar_nome(nome):
+        return 500, "Nome inválido."
+    if not validar_nif(nif):
+        return 500, "NIF inválido."
+    for id_c, c in clubes.items():
         if c["nif"] == nif:
-            return 409, "Clube com este NIF já existe!"
-
+            return 409, "Já existe um clube com este NIF."
+    id_clube = gerar_id_clube()
     clube = {
-        "id_clube": gerar_id_clube(),
         "nome": nome,
         "nif": nif
     }
+    clubes[id_clube] = clube
+    guardar_clubes()
+    return 201, clube
 
-    clubes.append(clube)
-    return 200, clube
-
-
-def remover_clube(id_clube):
-    for c in clubes:
-        if c["id_clube"] == id_clube:
-            clubes.remove(c)
-            return 200, c
-
-    return 404, "Clube não encontrado"
-
+# ==========================
+# READ ALL
+# ==========================
 
 def listar_clubes():
+    carregar_clubes()
     if not clubes:
-        return 200, "Nenhum clube registado."
+        return 404, "Não existem clubes registados."
+    return 200, clubes
 
-    lista_formatada = []
-    for c in clubes:
-        lista_formatada.append(f"ID: {c['id_clube']} | Nome: {c['nome']} | NIF: {c['nif']}")
+# ==========================
+# READ ONE
+# ==========================
 
-    return 200, lista_formatada
+def consultar_clube(id_clube):
+    carregar_clubes()
+    if id_clube not in clubes:
+        return 404, "Clube não encontrado."
+    return 200, clubes[id_clube]
+
+# ==========================
+# UPDATE
+# ==========================
+
+def atualizar_clube(id_clube, nome=None, nif=None):
+    carregar_clubes()
+    if id_clube not in clubes:
+        return 404, "Clube não encontrado."
+    if nome:
+        if not validar_nome(nome):
+            return 500, "Nome inválido."
+        clubes[id_clube]["nome"] = nome
+    if nif:
+        if not validar_nif(nif):
+            return 500, "NIF inválido."
+        for id_c, c in clubes.items():
+            if c["nif"] == nif and id_c != id_clube:
+                return 409, "Já existe um clube com este NIF."
+        clubes[id_clube]["nif"] = nif
+    guardar_clubes()
+    return 200, clubes[id_clube]
+
+# ==========================
+# DELETE
+# ==========================
+
+def remover_clube(id_clube):
+    carregar_clubes()
+    if id_clube not in clubes:
+        return 404, "Clube não encontrado."
+    del clubes[id_clube]
+    guardar_clubes()
+    return 200, id_clube

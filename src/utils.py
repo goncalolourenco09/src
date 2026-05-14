@@ -88,3 +88,11 @@ def gerar_id_treinador():
     if not treinadores:
         return 1
     return max(treinadores.keys()) + 1
+
+def validar_nif(nif):
+    nif_str = str(nif)
+    if not nif_str.isdigit():
+        return False, "NIF deve conter apenas dígitos."
+    if len(nif_str) != 9:
+        return False, "NIF deve ter 9 dígitos."
+    return True, None

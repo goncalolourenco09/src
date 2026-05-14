@@ -62,15 +62,15 @@ def validar_golos(golos):
         return False, "Golos não podem ser negativos."
     return True, None
 
-def gerar_id_treinador():
-    from persistencia import carregar, FICHEIRO_TREINADORES
-    treinadores = carregar(FICHEIRO_TREINADORES)
-    lista = [{"id_treinador": k} for k in treinadores.keys()]
-    return gerar_id_de_lista(lista, "id_treinador")
-
-
 def calcular_idade(data_nascimento_str):
     nascimento = datetime.strptime(data_nascimento_str, "%Y-%m-%d").date()
     hoje = date.today()
     idade = hoje.year - nascimento.year
     return idade
+    
+def gerar_id_treinador():
+    from persistencia import carregar, FICHEIRO_TREINADORES
+    treinadores = carregar(FICHEIRO_TREINADORES)
+    if not treinadores:
+        return 1
+    return max(treinadores.keys()) + 1

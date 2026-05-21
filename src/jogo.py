@@ -1,3 +1,4 @@
+from logger import get_logger
 from utils import (
     gerar_id_jogo,
     validar_nome,
@@ -5,6 +6,8 @@ from utils import (
     validar_golos,
 )
 from persistencia import guardar, carregar, FICHEIRO_JOGOS
+
+logger = get_logger(__name__)
 
 jogos = {}
 

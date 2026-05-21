@@ -1,3 +1,7 @@
+from logger import get_logger
+
+logger = get_logger(__name__)
+
 from treinador import (
     criar_treinador,
     atualizar_treinador,
@@ -27,6 +31,7 @@ from jogador import (
 
 
 def main():
+    logger.info("Sistema iniciado")
     while True:
         print("""
             1. Adicionar jogador
@@ -82,12 +87,12 @@ def main():
             if status == 201:
                 print(f" Jogador {dados['nome']} adicionado!")
             else:
+                logger.error("Erro ao adicionar jogador via menu — código %s: %s", status, dados)
                 print(f" ERRO - {status}: {dados}")
 
         elif op == "2":
             status, dados = listar_jogadores()
 
-            # ✅ CORREÇÃO: listar_jogadores devolve 204 quando está vazio
             if status in (200, 204):
                 if isinstance(dados, str):
                     print(dados)
@@ -96,6 +101,7 @@ def main():
                     for j in dados:
                         print(f'{j["id_jogador"]} | {j["nome"]} | Nº {j["numero_camisa"]}')
             else:
+                logger.error("Erro ao listar jogadores — código %s: %s", status, dados)
                 print("", dados)
 
         elif op == "3":
@@ -108,6 +114,7 @@ def main():
                     for k, v in jogador.items():
                         print(f"{k}: {v}")
                 else:
+                    logger.error("Erro ao procurar jogador ID %s — código %s: %s", id_jogador, status, jogador)
                     print("", jogador)
             except ValueError:
                 print(" ID inválido!")
@@ -131,7 +138,6 @@ def main():
             else:
                 numero = None
 
-            # ✅ CORREÇÃO: parâmetros nomeados e nome vazio passa como None
             status, msg = atualizar_jogador(
                 id_jogador,
                 nome=nome or None,
@@ -141,6 +147,7 @@ def main():
             if status == 200:
                 print(" Jogador atualizado!")
             else:
+                logger.error("Erro ao atualizar jogador ID %s — código %s: %s", id_jogador, status, msg)
                 print("", msg)
 
         elif op == "5":
@@ -151,6 +158,7 @@ def main():
                 if status == 200:
                     print(" Jogador removido:", dados["nome"])
                 else:
+                    logger.error("Erro ao remover jogador ID %s — código %s: %s", id_jogador, status, dados)
                     print("", dados)
             except ValueError:
                 print(" ID inválido!")
@@ -161,9 +169,10 @@ def main():
 
             status, dados = criar_clube(nome, nif)
 
-            if status == 200:
+            if status in (200, 201):
                 print(" Clube criado:", dados["nome"])
             else:
+                logger.error("Erro ao criar clube via menu — código %s: %s", status, dados)
                 print("", dados)
 
         elif op == "7":
@@ -174,6 +183,7 @@ def main():
                 if status == 200:
                     print(" Clube removido:", dados["nome"])
                 else:
+                    logger.error("Erro ao remover clube ID %s — código %s: %s", id_clube, status, dados)
                     print("", dados)
             except ValueError:
                 print(" ID inválido!")
@@ -189,6 +199,7 @@ def main():
                     for c in dados:
                         print(f'{c["id_clube"]} | {c["nome"]} | NIF: {c["nif"]}')
             else:
+                logger.error("Erro ao listar clubes — código %s: %s", status, dados)
                 print("", dados)
 
         elif op == "9":
@@ -221,12 +232,12 @@ def main():
             if status == 201:
                 print(f" Treinador {dados['nome']} adicionado!")
             else:
+                logger.error("Erro ao adicionar treinador via menu — código %s: %s", status, dados)
                 print(f" ERRO - {status}: {dados}")
 
         elif op == "10":
             status, dados = listar_treinadores()
 
-            # ✅ CORREÇÃO: listar_treinadores devolve 204 quando está vazio
             if status in (200, 204):
                 if isinstance(dados, str):
                     print(dados)
@@ -235,18 +246,20 @@ def main():
                     for t in dados:
                         print(f'{t["id_treinador"]} | {t["nome"]} | {t["nacionalidade"]} | Licença: {t["licenca_UEFA"]} | Clube: {t["id_clube"]}')
             else:
+                logger.error("Erro ao listar treinadores — código %s: %s", status, dados)
                 print("", dados)
 
         elif op == "11":
             try:
                 id_treinador = int(input("ID do treinador: "))
-                status, treinador = obter_treinador(id_treinador)
+                status, treinador = consultar_treinador(id_treinador)
 
                 if status == 200:
                     print("\n--- Detalhes do Treinador ---")
                     for k, v in treinador.items():
                         print(f"{k}: {v}")
                 else:
+                    logger.error("Erro ao procurar treinador ID %s — código %s: %s", id_treinador, status, treinador)
                     print("", treinador)
             except ValueError:
                 print(" ID inválido!")
@@ -276,6 +289,7 @@ def main():
             if status == 200:
                 print(" Treinador atualizado!")
             else:
+                logger.error("Erro ao atualizar treinador ID %s — código %s: %s", id_treinador, status, msg)
                 print("", msg)
 
         elif op == "13":
@@ -286,6 +300,7 @@ def main():
                 if status == 200:
                     print(" Treinador removido:", dados["nome"])
                 else:
+                    logger.error("Erro ao remover treinador ID %s — código %s: %s", id_treinador, status, dados)
                     print("", dados)
             except ValueError:
                 print(" ID inválido!")
@@ -316,12 +331,12 @@ def main():
             if status == 201:
                 print(f" Jogo no {dados['estadio']} adicionado!")
             else:
+                logger.error("Erro ao adicionar jogo via menu — código %s: %s", status, dados)
                 print(f" ERRO - {status}: {dados}")
 
         elif op == "15":
             status, dados = listar_jogos()
 
-            # ✅ CORREÇÃO: listar_jogos devolve 204 quando está vazio
             if status in (200, 204):
                 if isinstance(dados, str):
                     print(dados)
@@ -330,6 +345,7 @@ def main():
                     for j in dados:
                         print(f'{j["id_jogo"]} | {j["data"]} | {j["estadio"]} | {j["golos_casa"]}-{j["golos_fora"]}')
             else:
+                logger.error("Erro ao listar jogos — código %s: %s", status, dados)
                 print("", dados)
 
         elif op == "16":
@@ -342,6 +358,7 @@ def main():
                     for k, v in jogo.items():
                         print(f"{k}: {v}")
                 else:
+                    logger.error("Erro ao procurar jogo ID %s — código %s: %s", id_jogo, status, jogo)
                     print("", jogo)
             except ValueError:
                 print(" ID inválido!")
@@ -367,6 +384,7 @@ def main():
             if status == 200:
                 print(" Jogo atualizado!")
             else:
+                logger.error("Erro ao atualizar jogo ID %s — código %s: %s", id_jogo, status, msg)
                 print("", msg)
 
         elif op == "18":
@@ -377,11 +395,13 @@ def main():
                 if status == 200:
                     print(f" Jogo {dados['id_jogo']} removido!")
                 else:
+                    logger.error("Erro ao remover jogo ID %s — código %s: %s", id_jogo, status, dados)
                     print("", dados)
             except ValueError:
                 print(" ID inválido!")
 
         elif op == "0":
+            logger.info("Sistema encerrado pelo utilizador")
             print("A sair e o sporting vai ser tricampeão")
             break
 

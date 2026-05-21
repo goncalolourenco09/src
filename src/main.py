@@ -11,7 +11,7 @@ from treinador import (
 )
 from jogo import (
     remover_jogo,
-    obter_jogo,
+    consultar_jogo,
     atualizar_jogo,
     listar_jogos,
     criar_jogo,
@@ -25,7 +25,7 @@ from jogador import (
     criar_jogador,
     listar_jogadores,
     remover_jogador,
-    obter_jogador,
+    consultar_jogador,
     atualizar_jogador,
 )
 

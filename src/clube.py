@@ -1,8 +1,6 @@
-import logging
 from utils import gerar_id_clube, validar_nome, validar_nif
 from persistencia import guardar, carregar, FICHEIRO_CLUBES
 
-logger = logging.getLogger(__name__)
 
 clubes = {}
 
@@ -33,7 +31,7 @@ def criar_clube(nome, nif):
 
     for id_c, c in clubes.items():
         if c["nif"] == nif:
-            logger.warning("NIF '%s' já está registado no clube '%s'", nif, c["nome"])
+            logger.error("NIF '%s' já está registado no clube '%s'", nif, c["nome"])
             return 409, "Já existe um clube com este NIF."
 
     id_clube = gerar_id_clube()
@@ -53,7 +51,7 @@ def criar_clube(nome, nif):
 def listar_clubes():
     carregar_clubes()
     if not clubes:
-        logger.warning("Listagem de clubes: nenhum clube registado")
+        logger.error("Listagem de clubes: nenhum clube registado")
         return 404, "Não existem clubes registados."
     logger.info("Listagem de clubes: %d clube(s) encontrado(s)", len(clubes))
     return 200, clubes
@@ -65,7 +63,7 @@ def listar_clubes():
 def consultar_clube(id_clube):
     carregar_clubes()
     if id_clube not in clubes:
-        logger.warning("Clube com ID %s não encontrado", id_clube)
+        logger.error("Clube com ID %s não encontrado", id_clube)
         return 404, "Clube não encontrado."
     logger.info("Clube consultado: ID %s — '%s'", id_clube, clubes[id_clube]["nome"])
     return 200, clubes[id_clube]
@@ -77,7 +75,7 @@ def consultar_clube(id_clube):
 def atualizar_clube(id_clube, nome=None, nif=None):
     carregar_clubes()
     if id_clube not in clubes:
-        logger.warning("Atualização falhada: clube com ID %s não encontrado", id_clube)
+        logger.error("Atualização falhada: clube com ID %s não encontrado", id_clube)
         return 404, "Clube não encontrado."
 
     if nome:
@@ -92,7 +90,7 @@ def atualizar_clube(id_clube, nome=None, nif=None):
             return 500, "NIF inválido."
         for id_c, c in clubes.items():
             if c["nif"] == nif and id_c != id_clube:
-                logger.warning("Atualização falhada: NIF '%s' já está registado no clube '%s'", nif, c["nome"])
+                logger.error("Atualização falhada: NIF '%s' já está registado no clube '%s'", nif, c["nome"])
                 return 409, "Já existe um clube com este NIF."
         clubes[id_clube]["nif"] = nif
 
@@ -107,7 +105,7 @@ def atualizar_clube(id_clube, nome=None, nif=None):
 def remover_clube(id_clube):
     carregar_clubes()
     if id_clube not in clubes:
-        logger.warning("Remoção falhada: clube com ID %s não encontrado", id_clube)
+        logger.error("Remoção falhada: clube com ID %s não encontrado", id_clube)
         return 404, "Clube não encontrado."
     nome = clubes[id_clube]["nome"]
     del clubes[id_clube]

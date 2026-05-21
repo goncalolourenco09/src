@@ -1,6 +1,8 @@
+from logger import get_logger
 from utils import gerar_id_clube, validar_nome, validar_nif
 from persistencia import guardar, carregar, FICHEIRO_CLUBES
 
+logger = get_logger(__name__)
 
 clubes = {}
 

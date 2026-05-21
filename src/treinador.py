@@ -1,4 +1,3 @@
-import logging
 from utils import (
     gerar_id_treinador,
     validar_nome,
@@ -6,8 +5,6 @@ from utils import (
     validar_licenca_UEFA,
 )
 from persistencia import guardar, carregar, FICHEIRO_TREINADORES
-
-logger = logging.getLogger(__name__)
 
 treinadores = {}
 
@@ -66,7 +63,7 @@ def criar_treinador(nome, nacionalidade, data_nascimento, licenca_UEFA, id_clube
 def listar_treinadores():
     carregar_treinadores()
     if not treinadores:
-        logger.warning("Listagem de treinadores: nenhum treinador registado")
+        logger.error("Listagem de treinadores: nenhum treinador registado")
         return 404, "Não existem treinadores registados."
     logger.info("Listagem de treinadores: %d treinador(es) encontrado(s)", len(treinadores))
     return 200, treinadores
@@ -78,7 +75,7 @@ def listar_treinadores():
 def consultar_treinador(id_treinador):
     carregar_treinadores()
     if id_treinador not in treinadores:
-        logger.warning("Treinador com ID %s não encontrado", id_treinador)
+        logger.error("Treinador com ID %s não encontrado", id_treinador)
         return 404, "Treinador não encontrado."
     logger.info("Treinador consultado: ID %s — '%s'", id_treinador, treinadores[id_treinador]["nome"])
     return 200, treinadores[id_treinador]
@@ -90,7 +87,7 @@ def consultar_treinador(id_treinador):
 def atualizar_treinador(id_treinador, nome=None, nacionalidade=None, licenca_UEFA=None, id_clube=None):
     carregar_treinadores()
     if id_treinador not in treinadores:
-        logger.warning("Atualização falhada: treinador com ID %s não encontrado", id_treinador)
+        logger.error("Atualização falhada: treinador com ID %s não encontrado", id_treinador)
         return 404, "Treinador não encontrado."
 
     if nome:
@@ -128,7 +125,7 @@ def atualizar_treinador(id_treinador, nome=None, nacionalidade=None, licenca_UEF
 def remover_treinador(id_treinador):
     carregar_treinadores()
     if id_treinador not in treinadores:
-        logger.warning("Remoção falhada: treinador com ID %s não encontrado", id_treinador)
+        logger.error("Remoção falhada: treinador com ID %s não encontrado", id_treinador)
         return 404, "Treinador não encontrado."
     nome = treinadores[id_treinador]["nome"]
     del treinadores[id_treinador]

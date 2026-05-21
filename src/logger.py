@@ -9,13 +9,13 @@ from datetime import datetime
 LOG_DIR = "logs"
 LOG_FILE = os.path.join(LOG_DIR, f"football_manager_{datetime.now().strftime('%Y-%m-%d')}.log")
 
+_configurado = False
+
 
 def configurar_logger():
-    """
-    Configura o sistema de logging com dois handlers:
-      - StreamHandler: mostra logs WARNING+ no terminal
-      - FileHandler:   guarda logs DEBUG+ num ficheiro em /logs/
-    """
+    global _configurado
+    if _configurado:
+        return
 
     if not os.path.exists(LOG_DIR):
         os.makedirs(LOG_DIR)
@@ -41,4 +41,11 @@ def configurar_logger():
     logger_raiz.addHandler(handler_terminal)
     logger_raiz.addHandler(handler_ficheiro)
 
+    _configurado = True
     logging.getLogger(__name__).info("Logger configurado — ficheiro: %s", LOG_FILE)
+
+
+def get_logger(name: str) -> logging.Logger:
+    """Devolve um logger com o nome do módulo chamador."""
+    configurar_logger()
+    return logging.getLogger(name)

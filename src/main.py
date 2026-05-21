@@ -1,12 +1,6 @@
-import logging
+from logger import get_logger
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s | %(levelname)-8s | %(name)s — %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 from treinador import (
     criar_treinador,
@@ -17,7 +11,7 @@ from treinador import (
 )
 from jogo import (
     remover_jogo,
-    consultar_jogo,
+    obter_jogo,
     atualizar_jogo,
     listar_jogos,
     criar_jogo,
@@ -31,7 +25,7 @@ from jogador import (
     criar_jogador,
     listar_jogadores,
     remover_jogador,
-    consultar_jogador,
+    obter_jogador,
     atualizar_jogador,
 )
 

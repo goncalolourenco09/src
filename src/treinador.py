@@ -1,3 +1,4 @@
+from logger import get_logger
 from utils import (
     gerar_id_treinador,
     validar_nome,
@@ -5,6 +6,8 @@ from utils import (
     validar_licenca_UEFA,
 )
 from persistencia import guardar, carregar, FICHEIRO_TREINADORES
+
+logger = get_logger(__name__)
 
 treinadores = {}
 

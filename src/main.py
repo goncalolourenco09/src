@@ -1,23 +1,44 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
-from datetime import datetime
+from tkinter import ttk, messagebox, Toplevel, Label, Entry, Button, Frame
 
-from persistencia import FICHEIROS
-from clube import criar_clube, listar_clubes, remover_clube
-from jogador import criar_jogador, listar_jogadores, remover_jogador
-from treinador import criar_treinador, listar_treinadores, remover_treinador
-from jogo import criar_jogo, listar_jogos, remover_jogo
+# Importações dos módulos
+try:
+    from clube import criar_clube, listar_clubes, remover_clube
+    from jogador import criar_jogador, listar_jogadores, remover_jogador
+    from treinador import criar_treinador, listar_treinadores, remover_treinador
+    from jogo import criar_jogo, listar_jogos, remover_jogo
+except ImportError as e:
+    print(f"Aviso: Algum módulo não foi encontrado: {e}")
+
+
+    def dummy(*args, **kwargs):
+        return False, "Ficheiro .py em falta"
+
+
+    if 'criar_clube' not in locals(): criar_clube = dummy
+    if 'listar_clubes' not in locals(): listar_clubes = lambda: {}
+    if 'remover_clube' not in locals(): remover_clube = dummy
+    if 'criar_jogador' not in locals(): criar_jogador = dummy
+    if 'listar_jogadores' not in locals(): listar_jogadores = lambda: {}
+    if 'remover_jogador' not in locals(): remover_jogador = dummy
+    if 'criar_treinador' not in locals(): criar_treinador = dummy
+    if 'listar_treinadores' not in locals(): listar_treinadores = lambda: {}
+    if 'remover_treinador' not in locals(): remover_treinador = dummy
+    if 'criar_jogo' not in locals(): criar_jogo = dummy
+    if 'listar_jogos' not in locals(): listar_jogos = lambda: {}
+    if 'remover_jogo' not in locals(): remover_jogo = dummy
 
 
 class FootballManagerApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("🏆 Football Manager - Sistema de Gestão")
-        self.root.geometry("1250x780")
+        self.root.title("🏆 Football Manager - Sistema de Gestão Profissional")
+        self.root.geometry("1250x800")
 
         self.notebook = ttk.Notebook(root)
         self.notebook.pack(fill="both", expand=True, padx=10, pady=10)
 
+        # Criar todas as abas (agora todas completas)
         self.criar_aba_clubes()
         self.criar_aba_jogadores()
         self.criar_aba_treinadores()
@@ -35,7 +56,29 @@ class FootballManagerApp:
         self.atualizar_tree(self.tree_clubes, listar_clubes(), ["nome", "nif"])
 
     def janela_novo_clube(self):
-        self.janela_form("Novo Clube", ["Nome", "NIF"], criar_clube, self.atualizar_clubes)
+        win = Toplevel(self.root);
+        win.title("Novo Clube");
+        win.geometry("400x250");
+        win.grab_set()
+        f = Frame(win, padx=20, pady=20);
+        f.pack()
+        Label(f, text="Nome:").grid(row=0, column=0, sticky="w")
+        e_nome = Entry(f, width=30);
+        e_nome.grid(row=0, column=1, pady=5)
+        Label(f, text="NIF:").grid(row=1, column=0, sticky="w")
+        e_nif = Entry(f, width=30);
+        e_nif.grid(row=1, column=1, pady=5)
+
+        def salvar():
+            n, ni = e_nome.get().strip(), e_nif.get().strip()
+            if not n or not ni: return messagebox.showwarning("!", "Preencha tudo")
+            s, m = criar_clube(n, ni)
+            if s:
+                win.destroy(); self.atualizar_clubes(); messagebox.showinfo("OK", "Clube criado!")
+            else:
+                messagebox.showerror("Erro", m)
+
+        Button(f, text="Guardar", command=salvar, bg="green", fg="white", width=15).grid(row=2, columnspan=2, pady=20)
 
     def remover_clube(self):
         self.remover_item(self.tree_clubes, remover_clube, self.atualizar_clubes)
@@ -50,50 +93,43 @@ class FootballManagerApp:
 
     def atualizar_jogadores(self):
         jogadores = listar_jogadores()
-        for item in self.tree_jogadores.get_children():
-            self.tree_jogadores.delete(item)
+        for i in self.tree_jogadores.get_children(): self.tree_jogadores.delete(i)
+        if not isinstance(jogadores, dict): return
         for id_j, j in jogadores.items():
             self.tree_jogadores.insert("", "end", values=(
-                id_j, j["nome"], j.get("idade", "-"), j["posicao"],
-                j["numero_camisa"], f"{float(j['salario']):.2f}€"
+                id_j, j.get("nome"), j.get("idade"), j.get("posicao", "").capitalize(),
+                j.get("numero_camisa"), f"{float(j.get('salario', 0)):.2f}€"
             ))
 
     def janela_novo_jogador(self):
-        win = tk.Toplevel(self.root)
-        win.title("Novo Jogador")
-        win.geometry("520x580")
-
-        entries = {}
-        labels = ["Nome", "Data Nascimento (YYYY-MM-DD)", "Número Camisola", "Salário"]
-        for label in labels:
-            tk.Label(win, text=label + ":", font=("Arial", 10)).pack(pady=8, anchor="w", padx=40)
-            entry = tk.Entry(win, width=50)
-            entry.pack(pady=5)
-            entries[label] = entry
-
-        tk.Label(win, text="Posição:", font=("Arial", 10)).pack(pady=8, anchor="w", padx=40)
-        pos_combo = ttk.Combobox(win, values=["guarda-redes", "defesa", "médio", "avançado"], width=47)
-        pos_combo.pack(pady=5)
+        win = Toplevel(self.root);
+        win.title("Novo Jogador");
+        win.geometry("450x550");
+        win.grab_set()
+        f = Frame(win, padx=20, pady=20);
+        f.pack()
+        lbls = ["Nome", "Data Nasc (AAAA-MM-DD)", "Camisola (1-99)", "Salário"]
+        ents = []
+        for i, c in enumerate(lbls):
+            Label(f, text=c + ":").grid(row=i, column=0, sticky="w")
+            e = Entry(f, width=30);
+            e.grid(row=i, column=1, pady=8);
+            ents.append(e)
+        Label(f, text="Posição:").grid(row=4, column=0, sticky="w")
+        cb = ttk.Combobox(f, values=["guarda-redes", "defesa", "médio", "avançado"], state="readonly", width=27)
+        cb.grid(row=4, column=1, pady=8);
+        cb.current(0)
 
         def salvar():
-            try:
-                sucesso, msg = criar_jogador(
-                    entries["Nome"].get(),
-                    entries["Data Nascimento (YYYY-MM-DD)"].get(),
-                    int(entries["Número Camisola"].get()),
-                    pos_combo.get(),
-                    float(entries["Salário"].get())
-                )
-                if sucesso:
-                    messagebox.showinfo("Sucesso", "Jogador criado com sucesso!")
-                    win.destroy()
-                    self.atualizar_jogadores()
-                else:
-                    messagebox.showerror("Erro", msg)
-            except Exception as e:
-                messagebox.showerror("Erro", f"Verifique os campos numéricos!\n{e}")
+            v = [e.get().strip() for e in ents]
+            if not all(v): return messagebox.showwarning("!", "Preencha tudo")
+            s, m = criar_jogador(v[0], v[1], v[2], cb.get(), v[3])
+            if s:
+                win.destroy(); self.atualizar_jogadores(); messagebox.showinfo("OK", "Jogador criado!")
+            else:
+                messagebox.showerror("Erro", m)
 
-        ttk.Button(win, text="💾 Guardar Jogador", command=salvar).pack(pady=25)
+        Button(f, text="💾 Guardar", command=salvar, bg="green", fg="white", width=20).grid(row=5, columnspan=2, pady=20)
 
     def remover_jogador(self):
         self.remover_item(self.tree_jogadores, remover_jogador, self.atualizar_jogadores)
@@ -102,50 +138,39 @@ class FootballManagerApp:
     def criar_aba_treinadores(self):
         frame = ttk.Frame(self.notebook)
         self.notebook.add(frame, text="Treinadores")
-        self.tree_treinadores = self.criar_treeview(frame, ["ID", "Nome", "Nacionalidade", "Licença", "Clube"])
+        self.tree_treinadores = self.criar_treeview(frame, ["ID", "Nome", "Nacionalidade", "Licença", "ID Clube"])
         self.adicionar_botoes(frame, self.atualizar_treinadores, self.janela_novo_treinador, self.remover_treinador)
         self.atualizar_treinadores()
 
     def atualizar_treinadores(self):
-        treinadores = listar_treinadores()
-        for item in self.tree_treinadores.get_children():
-            self.tree_treinadores.delete(item)
-        for id_t, t in treinadores.items():
-            self.tree_treinadores.insert("", "end", values=(
-                id_t, t["nome"], t["nacionalidade"], t["licenca_UEFA"], t.get("id_clube", "Sem clube")
-            ))
+        self.atualizar_tree(self.tree_treinadores, listar_treinadores(),
+                            ["nome", "nacionalidade", "licenca_UEFA", "id_clube"])
 
     def janela_novo_treinador(self):
-        win = tk.Toplevel(self.root)
-        win.title("Novo Treinador")
-        win.geometry("520x520")
-
-        entries = {}
-        labels = ["Nome", "Nacionalidade", "Data Nascimento (YYYY-MM-DD)", "Licença UEFA (A/B/PRO)"]
-        for label in labels:
-            tk.Label(win, text=label + ":", font=("Arial", 10)).pack(pady=8, anchor="w", padx=40)
-            entry = tk.Entry(win, width=50)
-            entry.pack(pady=5)
-            entries[label] = entry
+        win = Toplevel(self.root);
+        win.title("Novo Treinador");
+        win.geometry("450x450");
+        win.grab_set()
+        f = Frame(win, padx=20, pady=20);
+        f.pack()
+        lbls = ["Nome", "Nacionalidade", "Data Nasc (AAAA-MM-DD)", "Licença (A/B/PRO)"]
+        ents = []
+        for i, c in enumerate(lbls):
+            Label(f, text=c + ":").grid(row=i, column=0, sticky="w")
+            e = Entry(f, width=30);
+            e.grid(row=i, column=1, pady=8);
+            ents.append(e)
 
         def salvar():
-            try:
-                sucesso, msg = criar_treinador(
-                    entries["Nome"].get(),
-                    entries["Nacionalidade"].get(),
-                    entries["Data Nascimento (YYYY-MM-DD)"].get(),
-                    entries["Licença UEFA (A/B/PRO)"].get()
-                )
-                if sucesso:
-                    messagebox.showinfo("Sucesso", "Treinador criado com sucesso!")
-                    win.destroy()
-                    self.atualizar_treinadores()
-                else:
-                    messagebox.showerror("Erro", msg)
-            except Exception as e:
-                messagebox.showerror("Erro", f"Erro: {e}")
+            v = [e.get().strip() for e in ents]
+            if not all(v): return messagebox.showwarning("!", "Preencha tudo")
+            s, m = criar_treinador(v[0], v[1], v[2], v[3])
+            if s:
+                win.destroy(); self.atualizar_treinadores(); messagebox.showinfo("OK", "Treinador criado!")
+            else:
+                messagebox.showerror("Erro", m)
 
-        ttk.Button(win, text="💾 Guardar Treinador", command=salvar).pack(pady=25)
+        Button(f, text="💾 Guardar", command=salvar, bg="green", fg="white", width=20).grid(row=4, columnspan=2, pady=20)
 
     def remover_treinador(self):
         self.remover_item(self.tree_treinadores, remover_treinador, self.atualizar_treinadores)
@@ -160,88 +185,79 @@ class FootballManagerApp:
 
     def atualizar_jogos(self):
         jogos = listar_jogos()
-        for item in self.tree_jogos.get_children():
-            self.tree_jogos.delete(item)
+        for i in self.tree_jogos.get_children(): self.tree_jogos.delete(i)
+        if not isinstance(jogos, dict): return
         for id_j, j in jogos.items():
             self.tree_jogos.insert("", "end", values=(
-                id_j, j["data"], j["estadio"], j["id_clube_casa"],
-                j["id_clube_fora"], f"{j['golos_casa']}-{j['golos_fora']}"
+                id_j, j.get("data"), j.get("estadio"), j.get("id_clube_casa"), j.get("id_clube_fora"),
+                f"{j.get('golos_casa', 0)}-{j.get('golos_fora', 0)}"
             ))
 
     def janela_novo_jogo(self):
-        win = tk.Toplevel(self.root)
-        win.title("Novo Jogo")
-        win.geometry("520x520")
-
-        entries = {}
-        labels = ["Data (YYYY-MM-DD)", "Estádio", "ID Clube Casa", "ID Clube Fora", "Golos Casa", "Golos Fora"]
-        for label in labels:
-            tk.Label(win, text=label + ":").pack(pady=8, anchor="w", padx=40)
-            entry = tk.Entry(win, width=50)
-            entry.pack(pady=5)
-            entries[label] = entry
+        win = Toplevel(self.root);
+        win.title("Novo Jogo");
+        win.geometry("450x550");
+        win.grab_set()
+        f = Frame(win, padx=20, pady=20);
+        f.pack()
+        lbls = ["Data (AAAA-MM-DD)", "Estádio", "ID Clube Casa", "ID Clube Fora", "Golos Casa", "Golos Fora"]
+        ents = []
+        for i, l in enumerate(lbls):
+            Label(f, text=l + ":").grid(row=i, column=0, sticky="w")
+            e = Entry(f, width=30);
+            e.grid(row=i, column=1, pady=5);
+            ents.append(e)
 
         def salvar():
+            v = [e.get().strip() for e in ents]
+            if not all(v): return messagebox.showwarning("!", "Preencha tudo")
             try:
-                sucesso, msg = criar_jogo(
-                    entries["Data (YYYY-MM-DD)"].get(),
-                    entries["Estádio"].get(),
-                    int(entries["ID Clube Casa"].get()),
-                    int(entries["ID Clube Fora"].get()),
-                    int(entries["Golos Casa"].get() or 0),
-                    int(entries["Golos Fora"].get() or 0)
-                )
-                if sucesso:
-                    messagebox.showinfo("Sucesso", "Jogo criado com sucesso!")
-                    win.destroy()
-                    self.atualizar_jogos()
+                s, m = criar_jogo(v[0], v[1], int(v[2]), int(v[3]), int(v[4]), int(v[5]))
+                if s:
+                    win.destroy(); self.atualizar_jogos(); messagebox.showinfo("OK", "Jogo registado!")
                 else:
-                    messagebox.showerror("Erro", msg)
-            except Exception as e:
-                messagebox.showerror("Erro", f"Verifique os IDs e números!\n{e}")
+                    messagebox.showerror("Erro", m)
+            except ValueError:
+                messagebox.showerror("Erro", "IDs e Golos devem ser números")
 
-        ttk.Button(win, text="💾 Guardar Jogo", command=salvar).pack(pady=25)
+        Button(f, text="💾 Guardar Jogo", command=salvar, bg="green", fg="white", width=20).grid(row=6, columnspan=2,
+                                                                                                pady=20)
 
     def remover_jogo(self):
         self.remover_item(self.tree_jogos, remover_jogo, self.atualizar_jogos)
 
-    # ====================== FUNÇÕES AUXILIARES ======================
+    # ====================== AUXILIARES ======================
     def criar_treeview(self, parent, colunas):
-        tree = ttk.Treeview(parent, columns=colunas, show="headings")
-        for col in colunas:
-            tree.heading(col, text=col)
-            tree.column(col, width=130, anchor="center")
-        tree.pack(fill="both", expand=True, pady=10)
-        return tree
+        f = Frame(parent);
+        f.pack(fill="both", expand=True, pady=10)
+        t = ttk.Treeview(f, columns=colunas, show="headings")
+        for c in colunas: t.heading(c, text=c); t.column(c, width=120, anchor="center")
+        t.pack(fill="both", expand=True);
+        return t
 
-    def adicionar_botoes(self, parent, atualizar_cmd, novo_cmd, remover_cmd=None):
-        frame = ttk.Frame(parent)
-        frame.pack(fill="x", pady=8)
-        ttk.Button(frame, text="🔄 Atualizar", command=atualizar_cmd).pack(side="left", padx=5)
-        ttk.Button(frame, text="➕ Novo", command=novo_cmd).pack(side="left", padx=5)
-        if remover_cmd:
-            ttk.Button(frame, text="🗑 Remover", command=remover_cmd).pack(side="left", padx=5)
+    def adicionar_botoes(self, parent, att, novo, rem):
+        f = Frame(parent);
+        f.pack(fill="x", pady=5)
+        Button(f, text="🔄 Atualizar", command=att).pack(side="left", padx=5)
+        Button(f, text="➕ Novo", command=novo).pack(side="left", padx=5)
+        Button(f, text="🗑 Remover", command=rem).pack(side="left", padx=5)
 
     def atualizar_tree(self, tree, dados, campos):
-        for item in tree.get_children():
-            tree.delete(item)
-        for id_item, item in dados.items():
-            valores = [id_item] + [item.get(campo, "") for campo in campos]
-            tree.insert("", "end", values=valores)
+        for i in tree.get_children(): tree.delete(i)
+        if not isinstance(dados, dict): return
+        for id_i, item in dados.items():
+            tree.insert("", "end", values=[id_i] + [item.get(c, "N/A") for c in campos])
 
-    def remover_item(self, tree, funcao_remover, atualizar_func):
+    def remover_item(self, tree, func, att):
         sel = tree.selection()
-        if not sel:
-            messagebox.showwarning("Aviso", "Selecione um item!")
-            return
-        id_item = tree.item(sel[0])["values"][0]
-        if messagebox.askyesno("Confirmar Remoção", f"Remover item ID {id_item}?"):
-            sucesso, msg = funcao_remover(str(id_item))
-            if sucesso:
-                messagebox.showinfo("Sucesso", msg)
-                atualizar_func()
+        if not sel: return messagebox.showwarning("!", "Selecione um item")
+        id_i = tree.item(sel[0])["values"][0]
+        if messagebox.askyesno("?", f"Remover ID {id_i}?"):
+            s, m = func(str(id_i))
+            if s:
+                att(); messagebox.showinfo("OK", m)
             else:
-                messagebox.showerror("Erro", msg)
+                messagebox.showerror("Erro", m)
 
 
 if __name__ == "__main__":

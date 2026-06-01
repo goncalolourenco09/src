@@ -1,413 +1,266 @@
-from logger import get_logger
+import tkinter as tk
+from tkinter import ttk, messagebox, Toplevel, Label, Entry, Button, Frame
 
-logger = get_logger(__name__)
-
-from treinador import (
-    criar_treinador,
-    atualizar_treinador,
-    listar_treinadores,
-    remover_treinador,
-    consultar_treinador,
-)
-from jogo import (
-    remover_jogo,
-    consultar_jogo,
-    atualizar_jogo,
-    listar_jogos,
-    criar_jogo,
-)
-from clube import (
-    remover_clube,
-    criar_clube,
-    listar_clubes,
-)
-from jogador import (
-    criar_jogador,
-    listar_jogadores,
-    remover_jogador,
-    consultar_jogador,
-    atualizar_jogador,
-)
+# Importações dos módulos
+try:
+    from clube import criar_clube, listar_clubes, remover_clube
+    from jogador import criar_jogador, listar_jogadores, remover_jogador
+    from treinador import criar_treinador, listar_treinadores, remover_treinador
+    from jogo import criar_jogo, listar_jogos, remover_jogo
+except ImportError as e:
+    print(f"Aviso: Algum módulo não foi encontrado: {e}")
 
 
-def main():
-    logger.info("Sistema iniciado")
-    while True:
-        print("""
-            1. Adicionar jogador
-            2. Listar jogadores
-            3. Procurar jogador
-            4. Atualizar jogador
-            5. Remover jogador
-            6. Adicionar clube
-            7. Remover clube
-            8. Listar clubes
-            9. Adicionar treinador
-            10. Listar treinadores
-            11. Procurar treinador
-            12. Atualizar treinador
-            13. Remover treinador
-            14. Adicionar jogo
-            15. Listar jogos
-            16. Procurar jogo
-            17. Atualizar jogo
-            18. Remover jogo
-            0. Sair
-        """)
-        op = input("Opção: ")
+    def dummy(*args, **kwargs):
+        return False, "Ficheiro .py em falta"
 
-        if op == "1":
-            nome = input("Nome: ")
 
-            from datetime import datetime
-            while True:
-                data_nascimento = input("Data nascimento (YYYY-MM-DD): ")
-                try:
-                    datetime.strptime(data_nascimento, "%Y-%m-%d")
-                    break
-                except ValueError:
-                    print(" Data inválida! Use o formato YYYY-MM-DD (ex: 2000-05-23)")
+    if 'criar_clube' not in locals(): criar_clube = dummy
+    if 'listar_clubes' not in locals(): listar_clubes = lambda: {}
+    if 'remover_clube' not in locals(): remover_clube = dummy
+    if 'criar_jogador' not in locals(): criar_jogador = dummy
+    if 'listar_jogadores' not in locals(): listar_jogadores = lambda: {}
+    if 'remover_jogador' not in locals(): remover_jogador = dummy
+    if 'criar_treinador' not in locals(): criar_treinador = dummy
+    if 'listar_treinadores' not in locals(): listar_treinadores = lambda: {}
+    if 'remover_treinador' not in locals(): remover_treinador = dummy
+    if 'criar_jogo' not in locals(): criar_jogo = dummy
+    if 'listar_jogos' not in locals(): listar_jogos = lambda: {}
+    if 'remover_jogo' not in locals(): remover_jogo = dummy
 
-            try:
-                numero = int(input("Número da camisola: "))
-            except ValueError:
-                print(" Número da camisola inválido!")
-                continue
 
-            posicao = input("Posição: ")
+class FootballManagerApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("🏆 Football Manager - Sistema de Gestão Profissional")
+        self.root.geometry("1250x800")
 
-            try:
-                salario = float(input("Salário: "))
-            except ValueError:
-                print(" Salário inválido!")
-                continue
+        self.notebook = ttk.Notebook(root)
+        self.notebook.pack(fill="both", expand=True, padx=10, pady=10)
 
-            status, dados = criar_jogador(nome, data_nascimento, numero, posicao, salario)
+        # Criar todas as abas (agora todas completas)
+        self.criar_aba_clubes()
+        self.criar_aba_jogadores()
+        self.criar_aba_treinadores()
+        self.criar_aba_jogos()
 
-            if status == 201:
-                print(f" Jogador {dados['nome']} adicionado!")
+    # ====================== CLUBES ======================
+    def criar_aba_clubes(self):
+        frame = ttk.Frame(self.notebook)
+        self.notebook.add(frame, text="Clubes")
+        self.tree_clubes = self.criar_treeview(frame, ["ID", "Nome", "NIF"])
+        self.adicionar_botoes(frame, self.atualizar_clubes, self.janela_novo_clube, self.remover_clube)
+        self.atualizar_clubes()
+
+    def atualizar_clubes(self):
+        self.atualizar_tree(self.tree_clubes, listar_clubes(), ["nome", "nif"])
+
+    def janela_novo_clube(self):
+        win = Toplevel(self.root);
+        win.title("Novo Clube");
+        win.geometry("400x250");
+        win.grab_set()
+        f = Frame(win, padx=20, pady=20);
+        f.pack()
+        Label(f, text="Nome:").grid(row=0, column=0, sticky="w")
+        e_nome = Entry(f, width=30);
+        e_nome.grid(row=0, column=1, pady=5)
+        Label(f, text="NIF:").grid(row=1, column=0, sticky="w")
+        e_nif = Entry(f, width=30);
+        e_nif.grid(row=1, column=1, pady=5)
+
+        def salvar():
+            n, ni = e_nome.get().strip(), e_nif.get().strip()
+            if not n or not ni: return messagebox.showwarning("!", "Preencha tudo")
+            s, m = criar_clube(n, ni)
+            if s:
+                win.destroy(); self.atualizar_clubes(); messagebox.showinfo("OK", "Clube criado!")
             else:
-                logger.error("Erro ao adicionar jogador via menu — código %s: %s", status, dados)
-                print(f" ERRO - {status}: {dados}")
+                messagebox.showerror("Erro", m)
 
-        elif op == "2":
-            status, dados = listar_jogadores()
+        Button(f, text="Guardar", command=salvar, bg="green", fg="white", width=15).grid(row=2, columnspan=2, pady=20)
 
-            if status in (200, 204):
-                if isinstance(dados, str):
-                    print(dados)
-                else:
-                    print("\n--- Jogadores ---")
-                    for j in dados:
-                        print(f'{j["id_jogador"]} | {j["nome"]} | Nº {j["numero_camisa"]}')
+    def remover_clube(self):
+        self.remover_item(self.tree_clubes, remover_clube, self.atualizar_clubes)
+
+    # ====================== JOGADORES ======================
+    def criar_aba_jogadores(self):
+        frame = ttk.Frame(self.notebook)
+        self.notebook.add(frame, text="Jogadores")
+        self.tree_jogadores = self.criar_treeview(frame, ["ID", "Nome", "Idade", "Posição", "Camisola", "Salário"])
+        self.adicionar_botoes(frame, self.atualizar_jogadores, self.janela_novo_jogador, self.remover_jogador)
+        self.atualizar_jogadores()
+
+    def atualizar_jogadores(self):
+        jogadores = listar_jogadores()
+        for i in self.tree_jogadores.get_children(): self.tree_jogadores.delete(i)
+        if not isinstance(jogadores, dict): return
+        for id_j, j in jogadores.items():
+            self.tree_jogadores.insert("", "end", values=(
+                id_j, j.get("nome"), j.get("idade"), j.get("posicao", "").capitalize(),
+                j.get("numero_camisa"), f"{float(j.get('salario', 0)):.2f}€"
+            ))
+
+    def janela_novo_jogador(self):
+        win = Toplevel(self.root);
+        win.title("Novo Jogador");
+        win.geometry("450x550");
+        win.grab_set()
+        f = Frame(win, padx=20, pady=20);
+        f.pack()
+        lbls = ["Nome", "Data Nasc (AAAA-MM-DD)", "Camisola (1-99)", "Salário"]
+        ents = []
+        for i, c in enumerate(lbls):
+            Label(f, text=c + ":").grid(row=i, column=0, sticky="w")
+            e = Entry(f, width=30);
+            e.grid(row=i, column=1, pady=8);
+            ents.append(e)
+        Label(f, text="Posição:").grid(row=4, column=0, sticky="w")
+        cb = ttk.Combobox(f, values=["guarda-redes", "defesa", "médio", "avançado"], state="readonly", width=27)
+        cb.grid(row=4, column=1, pady=8);
+        cb.current(0)
+
+        def salvar():
+            v = [e.get().strip() for e in ents]
+            if not all(v): return messagebox.showwarning("!", "Preencha tudo")
+            s, m = criar_jogador(v[0], v[1], v[2], cb.get(), v[3])
+            if s:
+                win.destroy(); self.atualizar_jogadores(); messagebox.showinfo("OK", "Jogador criado!")
             else:
-                logger.error("Erro ao listar jogadores — código %s: %s", status, dados)
-                print("", dados)
+                messagebox.showerror("Erro", m)
 
-        elif op == "3":
-            try:
-                id_jogador = int(input("ID do jogador: "))
-                status, jogador = obter_jogador(id_jogador)
+        Button(f, text="💾 Guardar", command=salvar, bg="green", fg="white", width=20).grid(row=5, columnspan=2, pady=20)
 
-                if status == 200:
-                    print("\n--- Detalhes do Jogador ---")
-                    for k, v in jogador.items():
-                        print(f"{k}: {v}")
-                else:
-                    logger.error("Erro ao procurar jogador ID %s — código %s: %s", id_jogador, status, jogador)
-                    print("", jogador)
-            except ValueError:
-                print(" ID inválido!")
+    def remover_jogador(self):
+        self.remover_item(self.tree_jogadores, remover_jogador, self.atualizar_jogadores)
 
-        elif op == "4":
-            try:
-                id_jogador = int(input("ID do jogador: "))
-            except ValueError:
-                print(" ID inválido!")
-                continue
+    # ====================== TREINADORES ======================
+    def criar_aba_treinadores(self):
+        frame = ttk.Frame(self.notebook)
+        self.notebook.add(frame, text="Treinadores")
+        self.tree_treinadores = self.criar_treeview(frame, ["ID", "Nome", "Nacionalidade", "Licença", "ID Clube"])
+        self.adicionar_botoes(frame, self.atualizar_treinadores, self.janela_novo_treinador, self.remover_treinador)
+        self.atualizar_treinadores()
 
-            nome = input("Novo nome (ENTER para manter): ")
-            numero = input("Novo número (ENTER para manter): ")
+    def atualizar_treinadores(self):
+        self.atualizar_tree(self.tree_treinadores, listar_treinadores(),
+                            ["nome", "nacionalidade", "licenca_UEFA", "id_clube"])
 
-            if numero:
-                try:
-                    numero = int(numero)
-                except ValueError:
-                    print(" Número inválido!")
-                    continue
+    def janela_novo_treinador(self):
+        win = Toplevel(self.root);
+        win.title("Novo Treinador");
+        win.geometry("450x450");
+        win.grab_set()
+        f = Frame(win, padx=20, pady=20);
+        f.pack()
+        lbls = ["Nome", "Nacionalidade", "Data Nasc (AAAA-MM-DD)", "Licença (A/B/PRO)"]
+        ents = []
+        for i, c in enumerate(lbls):
+            Label(f, text=c + ":").grid(row=i, column=0, sticky="w")
+            e = Entry(f, width=30);
+            e.grid(row=i, column=1, pady=8);
+            ents.append(e)
+
+        def salvar():
+            v = [e.get().strip() for e in ents]
+            if not all(v): return messagebox.showwarning("!", "Preencha tudo")
+            s, m = criar_treinador(v[0], v[1], v[2], v[3])
+            if s:
+                win.destroy(); self.atualizar_treinadores(); messagebox.showinfo("OK", "Treinador criado!")
             else:
-                numero = None
+                messagebox.showerror("Erro", m)
 
-            status, msg = atualizar_jogador(
-                id_jogador,
-                nome=nome or None,
-                numero_camisa=numero,
-            )
+        Button(f, text="💾 Guardar", command=salvar, bg="green", fg="white", width=20).grid(row=4, columnspan=2, pady=20)
 
-            if status == 200:
-                print(" Jogador atualizado!")
+    def remover_treinador(self):
+        self.remover_item(self.tree_treinadores, remover_treinador, self.atualizar_treinadores)
+
+    # ====================== JOGOS ======================
+    def criar_aba_jogos(self):
+        frame = ttk.Frame(self.notebook)
+        self.notebook.add(frame, text="Jogos")
+        self.tree_jogos = self.criar_treeview(frame, ["ID", "Data", "Estádio", "Casa", "Fora", "Resultado"])
+        self.adicionar_botoes(frame, self.atualizar_jogos, self.janela_novo_jogo, self.remover_jogo)
+        self.atualizar_jogos()
+
+    def atualizar_jogos(self):
+        jogos = listar_jogos()
+        for i in self.tree_jogos.get_children(): self.tree_jogos.delete(i)
+        if not isinstance(jogos, dict): return
+        for id_j, j in jogos.items():
+            self.tree_jogos.insert("", "end", values=(
+                id_j, j.get("data"), j.get("estadio"), j.get("id_clube_casa"), j.get("id_clube_fora"),
+                f"{j.get('golos_casa', 0)}-{j.get('golos_fora', 0)}"
+            ))
+
+    def janela_novo_jogo(self):
+        win = Toplevel(self.root);
+        win.title("Novo Jogo");
+        win.geometry("450x550");
+        win.grab_set()
+        f = Frame(win, padx=20, pady=20);
+        f.pack()
+        lbls = ["Data (AAAA-MM-DD)", "Estádio", "ID Clube Casa", "ID Clube Fora", "Golos Casa", "Golos Fora"]
+        ents = []
+        for i, l in enumerate(lbls):
+            Label(f, text=l + ":").grid(row=i, column=0, sticky="w")
+            e = Entry(f, width=30);
+            e.grid(row=i, column=1, pady=5);
+            ents.append(e)
+
+        def salvar():
+            v = [e.get().strip() for e in ents]
+            if not all(v): return messagebox.showwarning("!", "Preencha tudo")
+            try:
+                s, m = criar_jogo(v[0], v[1], int(v[2]), int(v[3]), int(v[4]), int(v[5]))
+                if s:
+                    win.destroy(); self.atualizar_jogos(); messagebox.showinfo("OK", "Jogo registado!")
+                else:
+                    messagebox.showerror("Erro", m)
+            except ValueError:
+                messagebox.showerror("Erro", "IDs e Golos devem ser números")
+
+        Button(f, text="💾 Guardar Jogo", command=salvar, bg="green", fg="white", width=20).grid(row=6, columnspan=2,
+                                                                                                pady=20)
+
+    def remover_jogo(self):
+        self.remover_item(self.tree_jogos, remover_jogo, self.atualizar_jogos)
+
+    # ====================== AUXILIARES ======================
+    def criar_treeview(self, parent, colunas):
+        f = Frame(parent);
+        f.pack(fill="both", expand=True, pady=10)
+        t = ttk.Treeview(f, columns=colunas, show="headings")
+        for c in colunas: t.heading(c, text=c); t.column(c, width=120, anchor="center")
+        t.pack(fill="both", expand=True);
+        return t
+
+    def adicionar_botoes(self, parent, att, novo, rem):
+        f = Frame(parent);
+        f.pack(fill="x", pady=5)
+        Button(f, text="🔄 Atualizar", command=att).pack(side="left", padx=5)
+        Button(f, text="➕ Novo", command=novo).pack(side="left", padx=5)
+        Button(f, text="🗑 Remover", command=rem).pack(side="left", padx=5)
+
+    def atualizar_tree(self, tree, dados, campos):
+        for i in tree.get_children(): tree.delete(i)
+        if not isinstance(dados, dict): return
+        for id_i, item in dados.items():
+            tree.insert("", "end", values=[id_i] + [item.get(c, "N/A") for c in campos])
+
+    def remover_item(self, tree, func, att):
+        sel = tree.selection()
+        if not sel: return messagebox.showwarning("!", "Selecione um item")
+        id_i = tree.item(sel[0])["values"][0]
+        if messagebox.askyesno("?", f"Remover ID {id_i}?"):
+            s, m = func(str(id_i))
+            if s:
+                att(); messagebox.showinfo("OK", m)
             else:
-                logger.error("Erro ao atualizar jogador ID %s — código %s: %s", id_jogador, status, msg)
-                print("", msg)
-
-        elif op == "5":
-            try:
-                id_jogador = int(input("ID: "))
-                status, dados = remover_jogador(id_jogador)
-
-                if status == 200:
-                    print(" Jogador removido:", dados["nome"])
-                else:
-                    logger.error("Erro ao remover jogador ID %s — código %s: %s", id_jogador, status, dados)
-                    print("", dados)
-            except ValueError:
-                print(" ID inválido!")
-
-        elif op == "6":
-            nome = input("Nome do clube: ")
-            nif = input("NIF: ")
-
-            status, dados = criar_clube(nome, nif)
-
-            if status in (200, 201):
-                print(" Clube criado:", dados["nome"])
-            else:
-                logger.error("Erro ao criar clube via menu — código %s: %s", status, dados)
-                print("", dados)
-
-        elif op == "7":
-            try:
-                id_clube = int(input("ID do clube: "))
-                status, dados = remover_clube(id_clube)
-
-                if status == 200:
-                    print(" Clube removido:", dados["nome"])
-                else:
-                    logger.error("Erro ao remover clube ID %s — código %s: %s", id_clube, status, dados)
-                    print("", dados)
-            except ValueError:
-                print(" ID inválido!")
-
-        elif op == "8":
-            status, dados = listar_clubes()
-
-            if status == 200:
-                if isinstance(dados, str):
-                    print(dados)
-                else:
-                    print("\n--- Clubes ---")
-                    for c in dados:
-                        print(f'{c["id_clube"]} | {c["nome"]} | NIF: {c["nif"]}')
-            else:
-                logger.error("Erro ao listar clubes — código %s: %s", status, dados)
-                print("", dados)
-
-        elif op == "9":
-            nome = input("Nome: ")
-            nacionalidade = input("Nacionalidade: ")
-
-            from datetime import datetime
-            while True:
-                data_nascimento = input("Data nascimento (YYYY-MM-DD): ")
-                try:
-                    datetime.strptime(data_nascimento, "%Y-%m-%d")
-                    break
-                except ValueError:
-                    print(" Data inválida! Use o formato YYYY-MM-DD")
-
-            licenca_UEFA = input("Licença UEFA (A / B / Pro): ")
-
-            try:
-                code, clubes = listar_clubes()
-                if code == 200:
-                    print(clubes)
-                    id_clube = int(input("ID do clube (ENTER para nenhum): ") or 0) or None
-                else:
-                    id_clube = None
-            except ValueError:
-                id_clube = None
-
-            status, dados = criar_treinador(nome, nacionalidade, data_nascimento, licenca_UEFA, id_clube)
-
-            if status == 201:
-                print(f" Treinador {dados['nome']} adicionado!")
-            else:
-                logger.error("Erro ao adicionar treinador via menu — código %s: %s", status, dados)
-                print(f" ERRO - {status}: {dados}")
-
-        elif op == "10":
-            status, dados = listar_treinadores()
-
-            if status in (200, 204):
-                if isinstance(dados, str):
-                    print(dados)
-                else:
-                    print("\n--- Treinadores ---")
-                    for t in dados:
-                        print(f'{t["id_treinador"]} | {t["nome"]} | {t["nacionalidade"]} | Licença: {t["licenca_UEFA"]} | Clube: {t["id_clube"]}')
-            else:
-                logger.error("Erro ao listar treinadores — código %s: %s", status, dados)
-                print("", dados)
-
-        elif op == "11":
-            try:
-                id_treinador = int(input("ID do treinador: "))
-                status, treinador = consultar_treinador(id_treinador)
-
-                if status == 200:
-                    print("\n--- Detalhes do Treinador ---")
-                    for k, v in treinador.items():
-                        print(f"{k}: {v}")
-                else:
-                    logger.error("Erro ao procurar treinador ID %s — código %s: %s", id_treinador, status, treinador)
-                    print("", treinador)
-            except ValueError:
-                print(" ID inválido!")
-
-        elif op == "12":
-            try:
-                id_treinador = int(input("ID do treinador: "))
-            except ValueError:
-                print(" ID inválido!")
-                continue
-
-            nome = input("Novo nome (ENTER para manter): ")
-            nacionalidade = input("Nova nacionalidade (ENTER para manter): ")
-            licenca_UEFA = input("Nova licença UEFA (ENTER para manter): ")
-            id_clube = input("Novo ID clube (ENTER para manter): ")
-
-            id_clube = int(id_clube) if id_clube else None
-
-            status, msg = atualizar_treinador(
-                id_treinador,
-                nome or None,
-                nacionalidade or None,
-                licenca_UEFA or None,
-                id_clube,
-            )
-
-            if status == 200:
-                print(" Treinador atualizado!")
-            else:
-                logger.error("Erro ao atualizar treinador ID %s — código %s: %s", id_treinador, status, msg)
-                print("", msg)
-
-        elif op == "13":
-            try:
-                id_treinador = int(input("ID do treinador: "))
-                status, dados = remover_treinador(id_treinador)
-
-                if status == 200:
-                    print(" Treinador removido:", dados["nome"])
-                else:
-                    logger.error("Erro ao remover treinador ID %s — código %s: %s", id_treinador, status, dados)
-                    print("", dados)
-            except ValueError:
-                print(" ID inválido!")
-
-        elif op == "14":
-            from datetime import datetime
-            while True:
-                data = input("Data do jogo (YYYY-MM-DD): ")
-                try:
-                    datetime.strptime(data, "%Y-%m-%d")
-                    break
-                except ValueError:
-                    print(" Data inválida! Use o formato YYYY-MM-DD")
-
-            estadio = input("Estádio: ")
-
-            try:
-                id_clube_casa = int(input("ID do clube da casa: "))
-                id_clube_fora = int(input("ID do clube de fora: "))
-                golos_casa = int(input("Golos casa: "))
-                golos_fora = int(input("Golos fora: "))
-            except ValueError:
-                print(" Valor inválido!")
-                continue
-
-            status, dados = criar_jogo(data, estadio, id_clube_casa, id_clube_fora, golos_casa, golos_fora)
-
-            if status == 201:
-                print(f" Jogo no {dados['estadio']} adicionado!")
-            else:
-                logger.error("Erro ao adicionar jogo via menu — código %s: %s", status, dados)
-                print(f" ERRO - {status}: {dados}")
-
-        elif op == "15":
-            status, dados = listar_jogos()
-
-            if status in (200, 204):
-                if isinstance(dados, str):
-                    print(dados)
-                else:
-                    print("\n--- Jogos ---")
-                    for j in dados:
-                        print(f'{j["id_jogo"]} | {j["data"]} | {j["estadio"]} | {j["golos_casa"]}-{j["golos_fora"]}')
-            else:
-                logger.error("Erro ao listar jogos — código %s: %s", status, dados)
-                print("", dados)
-
-        elif op == "16":
-            try:
-                id_jogo = int(input("ID do jogo: "))
-                status, jogo = obter_jogo(id_jogo)
-
-                if status == 200:
-                    print("\n--- Detalhes do Jogo ---")
-                    for k, v in jogo.items():
-                        print(f"{k}: {v}")
-                else:
-                    logger.error("Erro ao procurar jogo ID %s — código %s: %s", id_jogo, status, jogo)
-                    print("", jogo)
-            except ValueError:
-                print(" ID inválido!")
-
-        elif op == "17":
-            try:
-                id_jogo = int(input("ID do jogo: "))
-            except ValueError:
-                print(" ID inválido!")
-                continue
-
-            estadio = input("Novo estádio (ENTER para manter): ")
-            golos_casa = input("Novos golos casa (ENTER para manter): ")
-            golos_fora = input("Novos golos fora (ENTER para manter): ")
-
-            status, msg = atualizar_jogo(
-                id_jogo,
-                int(golos_casa) if golos_casa else None,
-                int(golos_fora) if golos_fora else None,
-                estadio or None,
-            )
-
-            if status == 200:
-                print(" Jogo atualizado!")
-            else:
-                logger.error("Erro ao atualizar jogo ID %s — código %s: %s", id_jogo, status, msg)
-                print("", msg)
-
-        elif op == "18":
-            try:
-                id_jogo = int(input("ID do jogo: "))
-                status, dados = remover_jogo(id_jogo)
-
-                if status == 200:
-                    print(f" Jogo {dados['id_jogo']} removido!")
-                else:
-                    logger.error("Erro ao remover jogo ID %s — código %s: %s", id_jogo, status, dados)
-                    print("", dados)
-            except ValueError:
-                print(" ID inválido!")
-
-        elif op == "0":
-            logger.info("Sistema encerrado pelo utilizador")
-            print("A sair e o sporting vai ser tricampeão")
-            break
-
-        else:
-            print(" Opção inválida!")
+                messagebox.showerror("Erro", m)
 
 
 if __name__ == "__main__":
-    main()
+    root = tk.Tk()
+    app = FootballManagerApp(root)
+    root.mainloop()

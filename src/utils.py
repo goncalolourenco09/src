@@ -11,27 +11,6 @@ def gerar_id_de_lista(lista, campo_id):
     return max(item[campo_id] for item in lista) + 1
 
 
-def gerar_id_jogo():
-    from persistencia import carregar, FICHEIRO_JOGOS
-    jogos = carregar(FICHEIRO_JOGOS)
-    if not jogos:
-        return 1
-    return max(jogos.keys()) + 1
-
-def gerar_id_clube():
-    from persistencia import carregar, FICHEIRO_CLUBES
-    clubes = carregar(FICHEIRO_CLUBES)
-    if not clubes:
-        return 1
-    return max(clubes.keys()) + 1
-
-def gerar_id_jogador():
-    from persistencia import carregar, FICHEIRO_JOGADORES
-    jogadores = carregar(FICHEIRO_JOGADORES)
-    if not jogadores:
-        return 1
-    return max(jogadores.keys()) + 1
-
 # ============================================================
 # VALIDAÇÕES
 # ============================================================
@@ -88,18 +67,10 @@ def calcular_idade(data_nascimento_str):
     hoje = date.today()
     idade = hoje.year - nascimento.year
     return idade
-    
+
 def gerar_id_treinador():
     from persistencia import carregar, FICHEIRO_TREINADORES
     treinadores = carregar(FICHEIRO_TREINADORES)
     if not treinadores:
         return 1
     return max(treinadores.keys()) + 1
-
-def validar_nif(nif):
-    nif_str = str(nif)
-    if not nif_str.isdigit():
-        return False, "NIF deve conter apenas dígitos."
-    if len(nif_str) != 9:
-        return False, "NIF deve ter 9 dígitos."
-    return True, None
